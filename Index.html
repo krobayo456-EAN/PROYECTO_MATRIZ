@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matriz de Interesados — FlashPay</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #1A2B4A;
+    --navy2:   #243659;
+    --green:   #1E7145;
+    --green2:  #27926A;
+    --blue:    #1A5C9B;
+    --blue2:   #2E74B5;
+    --amber:   #B07D00;
+    --amber2:  #D4970A;
+    --gray:    #5C5C5C;
+    --gray2:   #888;
+    --red:     #C00000;
+    --bg:      #F4F6FA;
+    --white:   #FFFFFF;
+    --border:  #D6DCE8;
+    --text:    #1A2B4A;
+    --text2:   #4A5568;
+    --radius:  10px;
+    --shadow:  0 4px 20px rgba(26,43,74,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: 20px 28px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .header-left h1 { font-size: 17px; font-weight: 600; letter-spacing: 0.02em; }
+  .header-left p  { font-size: 12px; color: #A8BEDD; margin-top: 3px; font-family: 'IBM Plex Mono', monospace; }
+  .header-badge { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: #C8D9F0; font-size: 11px; padding: 4px 12px; border-radius: 20px; font-family: 'IBM Plex Mono', monospace; }
+
+  .container {
+    background: white;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .header { max-width: 1200px; margin: 0 auto; }
+
+  /* ── LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    min-height: 560px;
+  }
+
+  /* ── MATRIX PANEL ── */
+  .matrix-panel {
+    padding: 24px 20px 16px 20px;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .matrix-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--navy);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .matrix-title::after { content:''; flex:1; height:1px; background: var(--border); }
+
+  .matrix-grid {
+    position: relative;
+    height: 420px;
+    margin: 0 20px 0 40px;
+  }
+
+  /* Quadrants */
+  .quad {
+    position: absolute;
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding: 10px 12px;
+  }
+  .quad-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .q-tl { top:0; left:0; width:50%; height:50%; background:#EBF3FB; }
+  .q-tl .quad-label { color: var(--blue); }
+  .q-tr { top:0; right:0; width:50%; height:50%; background:#E8F5EE; }
+  .q-tr .quad-label { color: var(--green); }
+  .q-bl { bottom:0; left:0; width:50%; height:50%; background:#F1F1F1; }
+  .q-bl .quad-label { color: var(--gray); }
+  .q-br { bottom:0; right:0; width:50%; height:50%; background:#FBF5E0; }
+  .q-br .quad-label { color: var(--amber); }
+
+  /* Dividers */
+  .div-v { position:absolute; left:50%; top:0; bottom:0; width:1px; background: var(--border); z-index:1; }
+  .div-h { position:absolute; top:50%; left:0; right:0; height:1px; background: var(--border); z-index:1; }
+
+  /* Axis labels */
+  .axis-y {
+    position: absolute;
+    left: -36px;
+    top: 50%;
+    transform: translateY(-50%) rotate(-90deg);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+  .axis-y-hi { position:absolute; left:-36px; top:4px; font-size:9px; color:var(--text2); }
+  .axis-y-lo { position:absolute; left:-36px; bottom:4px; font-size:9px; color:var(--text2); }
+  .axis-x {
+    position: absolute;
+    bottom: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text2);
+  }
+  .axis-x-lo { position:absolute; bottom:-28px; left:0; font-size:9px; color:var(--text2); }
+  .axis-x-hi { position:absolute; bottom:-28px; right:0; font-size:9px; color:var(--text2); }
+
+  /* Nodes */
+  .node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    z-index: 10;
+    transition: transform 0.2s, filter 0.2s;
+  }
+  .node:hover { transform: translate(-50%, -50%) scale(1.12); filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)); }
+  .node.active { transform: translate(-50%, -50%) scale(1.18); filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35)); }
+
+  .node-circle {
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500;
+    font-size: 11px;
+    color: white;
+    border: 2.5px solid rgba(255,255,255,0.6);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    transition: all 0.2s;
+    position: relative;
+  }
+  .node-circle.size-lg { width: 46px; height: 46px; font-size: 12px; }
+  .node-circle.size-md { width: 40px; height: 40px; }
+  .node-circle.size-sm { width: 34px; height: 34px; font-size: 10px; }
+
+  .node-label {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    text-align: center;
+    pointer-events: none;
+  }
+  .node-label .nl-name { font-size: 9.5px; font-weight: 600; color: var(--text); display:block; }
+  .node-label .nl-role { font-size: 8.5px; color: var(--text2); display:block; }
+
+  .color-gc  { background: linear-gradient(135deg, #1E7145, #27926A); }
+  .color-ms  { background: linear-gradient(135deg, #1A5C9B, #2E74B5); }
+  .color-mi  { background: linear-gradient(135deg, #B07D00, #D4970A); }
+  .color-mon { background: linear-gradient(135deg, #5C5C5C, #888); }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    display: flex;
+    flex-direction: column;
+    background: #FAFBFD;
+  }
+  .detail-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text2);
+    padding: 32px;
+    text-align: center;
+    gap: 12px;
+  }
+  .detail-empty .icon { font-size: 36px; opacity: 0.3; }
+  .detail-empty p { font-size: 13px; opacity: 0.6; line-height: 1.5; }
+
+  .detail-content { display: none; flex-direction: column; height: 100%; }
+  .detail-content.visible { display: flex; }
+
+  .detail-header {
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .detail-name { font-size: 17px; font-weight: 600; color: var(--navy); line-height: 1.2; }
+  .detail-role-tag {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 500;
+    color: white;
+  }
+
+  .detail-body { flex: 1; overflow-y: auto; padding: 16px 20px; display: flex; flex-direction: column; gap: 14px; }
+
+  .detail-section label {
+    font-size: 9.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    display: block;
+    margin-bottom: 5px;
+  }
+  .detail-section p {
+    font-size: 12.5px;
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .badges-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .badge {
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10.5px;
+    font-weight: 600;
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  .badge-a-green { background: #E2F5EA; color: var(--green); border: 1px solid #A5D6B5; }
+  .badge-b-red   { background: #FDECEA; color: var(--red);   border: 1px solid #F5B5B0; }
+  .badge-a-blue  { background: #E6F0FA; color: var(--blue);  border: 1px solid #A8C8EC; }
+  .badge-m-amber { background: #FEF9E7; color: #8B6914; border: 1px solid #E8C84A; }
+
+  .strategy-box {
+    background: var(--navy);
+    color: white;
+    border-radius: 8px;
+    padding: 12px 14px;
+  }
+  .strategy-box label { color: #A8BEDD !important; }
+  .strategy-box p { color: #E4EDF9; font-size: 12px; }
+  .strategy-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: white;
+  }
+  .stag-gc  { background: var(--green2); }
+  .stag-ms  { background: var(--blue2); }
+  .stag-mi  { background: var(--amber2); }
+  .stag-mon { background: var(--gray); }
+
+  .contact-row { display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--text2); }
+  .contact-row span { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; }
+
+  /* ── LEGEND ── */
+  .legend {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    background: #F8F9FB;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+  }
+  .legend-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text2); }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text2); }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .legend-hint { margin-left: auto; font-size: 10.5px; color: var(--text2); font-style: italic; }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .detail-content.visible { animation: fadeIn 0.25s ease; }
+  @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(30,113,69,0.4)} 50%{box-shadow:0 0 0 8px rgba(30,113,69,0)} }
+  .node.active .node-circle { animation: pulse 1.5s infinite; }
+
+  /* Print hint */
+  .print-bar {
+    max-width: 1200px;
+    margin: 8px auto 0;
+    text-align: right;
+    font-size: 11px;
+    color: var(--text2);
+    opacity: 0.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Matriz de Interesados — Proyecto FlashPay</h1>
+    <p>RAYOGAS S.A.S. E.S.P. · Universidad EAN · Formulación y Evaluación de Proyectos</p>
+  </div>
+  <div class="header-badge">12 interesados · 2026</div>
+</div>
+
+<div class="container">
+  <div class="layout">
+
+    <!-- MATRIX -->
+    <div class="matrix-panel">
+      <div class="matrix-title">Mapa Poder / Interés</div>
+      <div class="matrix-grid" id="matrixGrid">
+
+        <!-- Quadrants -->
+        <div class="quad q-tl"><span class="quad-label">Mantener satisfechos</span></div>
+        <div class="quad q-tr"><span class="quad-label">Gestionar de cerca</span></div>
+        <div class="quad q-bl"><span class="quad-label">Monitorear</span></div>
+        <div class="quad q-br"><span class="quad-label">Mantener informados</span></div>
+
+        <!-- Dividers -->
+        <div class="div-v"></div>
+        <div class="div-h"></div>
+
+        <!-- Axis -->
+        <div class="axis-y">Poder</div>
+        <div class="axis-y-hi">Alto</div>
+        <div class="axis-y-lo">Bajo</div>
+        <div class="axis-x">Interés</div>
+        <div class="axis-x-lo">Bajo</div>
+        <div class="axis-x-hi">Alto</div>
+      </div>
+
+      <!-- Legend -->
+      <div class="legend">
+        <span class="legend-title">Cuadrantes</span>
+        <div class="legend-item"><div class="legend-dot" style="background:#1E7145"></div>Gestionar de cerca</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#1A5C9B"></div>Mantener satisfechos</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#B07D00"></div>Mantener informados</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#888"></div>Monitorear</div>
+        <span class="legend-hint">← Haz clic en un interesado para ver su estrategia</span>
+      </div>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-panel">
+      <div class="detail-empty" id="detailEmpty">
+        <div class="icon">👤</div>
+        <p>Selecciona un interesado en la matriz para ver sus detalles, intereses y estrategia de gestión.</p>
+      </div>
+      <div class="detail-content" id="detailContent">
+        <div class="detail-header">
+          <div class="detail-id" id="dId"></div>
+          <div class="detail-name" id="dName"></div>
+          <div id="dRoleTag"></div>
+        </div>
+        <div class="detail-body">
+          <div class="detail-section">
+            <label>Cargo / Departamento</label>
+            <p id="dCargo"></p>
+          </div>
+          <div class="detail-section">
+            <label>Contacto</label>
+            <p id="dContacto" style="font-family:'IBM Plex Mono',monospace;font-size:11px;"></p>
+          </div>
+          <div class="detail-section">
+            <label>Clasificación</label>
+            <div class="badges-row" id="dBadges"></div>
+          </div>
+          <div class="detail-section">
+            <label>Requisitos Principales</label>
+            <p id="dRequisitos"></p>
+          </div>
+          <div class="detail-section">
+            <label>Expectativas Principales</label>
+            <p id="dExpectativas"></p>
+          </div>
+          <div class="detail-section strategy-box">
+            <div id="dStratTag"></div>
+            <label>Estrategia definida</label>
+            <p id="dEstrategia"></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="print-bar">Archivo: Matriz_Interesados_FlashPay.html</div>
+
+<script>
+const stakeholders = [
+  {
+    id:"001", name:"Julian Guzman", short:"Julián G.", role:"Dir. Proyecto",
+    cargo:"Director del Proyecto — Oficina de Proyectos (PMO) - RAYOGAS",
+    contacto:"direccion.ti@rayogas.co / 778-456-7863",
+    clasificacion:"Solidario", interes:"A", poder:"A", tipo:"Interno",
+    quadrant:"gc",
+    requisitos:"Liderar la planificación, ejecución y cierre del proyecto FlashPay respetando el cronograma y los recursos aprobados.",
+    expectativas:"Cumplimiento del cronograma y éxito de la integración ePayco–Siesa. Visibilidad permanente del avance del proyecto.",
+    estrategia:"Gestionar de cerca. Reuniones periódicas de seguimiento. Tablero de control compartido. Comunicación directa y continua. Involucrar en todas las decisiones de alcance y riesgo.",
+    // position as % of quadrant: x in right half (50-100%), y in top half (0-50%)
+    px:78, py:12, size:"lg"
+  },
+  {
+    id:"002", name:"Maritza Cardona", short:"Maritza C.", role:"Ger. Financiero",
+    cargo:"Gerente Financiero — Dirección Administrativa y Financiera - RAYOGAS",
+    contacto:"gerente@rayogas.co / 658-655-2474",
+    clasificacion:"Solidario", interes:"A", poder:"A", tipo:"Interno",
+    quadrant:"gc",
+    requisitos:"Garantizar que el proyecto mejore la eficiencia operativa del área financiera y reduzca los tiempos de conciliación.",
+    expectativas:"Visibilidad permanente del estado de pagos, reducción de reprocesos manuales y mejora en la trazabilidad financiera.",
+    estrategia:"Gestionar de cerca. Reportes periódicos de avance con indicadores operativos. Presentar mejoras en la conciliación. Asegurar su aprobación en hitos clave.",
+    px:60, py:22, size:"lg"
+  },
+  {
+    id:"003", name:"Gloria Rodriguez", short:"Gloria R.", role:"Contabilidad",
+    cargo:"Jefe de Contabilidad — Departamento Contable - RAYOGAS",
+    contacto:"contabilidad@rayogas.co / 525-558-8795",
+    clasificacion:"Líder", interes:"M", poder:"B", tipo:"Interno",
+    quadrant:"mi",
+    requisitos:"Garantizar la trazabilidad fiscal total de cada transacción procesada por FlashPay.",
+    expectativas:"Trazabilidad total de transacciones y exactitud en reportes fiscales ante la DIAN. Que el módulo de validación de impuestos elimine los descuadres de conciliación.",
+    estrategia:"Mantener informada. Capacitación específica en el módulo de validación de impuestos. Reuniones periódicas de revisión de integridad contable. Documentar el flujo de trazabilidad para su validación previa al go-live.",
+    px:56, py:58, size:"md"
+  },
+  {
+    id:"004", name:"Maricruz Velez", short:"Maricruz V.", role:"Cartera",
+    cargo:"Líder de Cartera — Departamento de Cartera - RAYOGAS",
+    contacto:"cartera@rayogas.co / 554-546-4789",
+    clasificacion:"Líder", interes:"A", poder:"B", tipo:"Interno",
+    quadrant:"mi",
+    requisitos:"Reducir la carga operativa manual del departamento de cartera mediante automatización del registro y aplicación de pagos en Siesa.",
+    expectativas:"Reducción de carga manual, facilidad de uso del sistema y eliminación de errores en la aplicación de pagos. Liberación oportuna de pedidos bloqueados.",
+    estrategia:"Mantener informada. Incluir en sesiones de pruebas de usuario (UAT). Recoger sus requerimientos funcionales en la etapa de diseño. Presentar demo funcional antes del go-live.",
+    px:66, py:70, size:"md"
+  },
+  {
+    id:"005", name:"Luis Diaz", short:"Luis D.", role:"Analista Cart.",
+    cargo:"Analista de Cartera — Departamento de Cartera - RAYOGAS",
+    contacto:"analista.cartera@rayogas.co / 478-896-1236",
+    clasificacion:"Líder", interes:"A", poder:"B", tipo:"Interno",
+    quadrant:"mi",
+    requisitos:"Contar con una interfaz de log de auditoría confiable que le permita supervisar los pagos procesados sin cruzar manualmente archivos Excel, PDFs y estados de cuenta.",
+    expectativas:"Reducción significativa de la conciliación manual. Que el sistema procese automáticamente los pagos, liberándolo para labores de supervisión y control.",
+    estrategia:"Mantener informado. Capacitación hands-on en el log de auditoría. Transmitir que FlashPay potencia su rol, no lo reemplaza. Incluir en pruebas UAT para validar usabilidad.",
+    px:80, py:82, size:"sm"
+  },
+  {
+    id:"006", name:"Andrea Nuñez", short:"Andrea N.", role:"Tesorera",
+    cargo:"Tesorera — Departamento de Tesorería - RAYOGAS",
+    contacto:"tesorera@rayogas.co / 789-325-6598",
+    clasificacion:"Líder", interes:"A", poder:"B", tipo:"Interno",
+    quadrant:"mi",
+    requisitos:"Disponer de información de recaudo actualizada para ejecutar la conciliación bancaria de forma automática y oportuna.",
+    expectativas:"Conciliación bancaria automática, información de pagos actualizada y eliminación de incertidumbre operativa en los cierres contables.",
+    estrategia:"Mantener informada. Demostrar cómo el dashboard de recaudo mejora la visibilidad operativa. Incluir en validación de conciliaciones durante pruebas. Comunicación periódica sobre fechas de entrega.",
+    px:71, py:76, size:"md"
+  },
+  {
+    id:"007", name:"Julian Guzman", short:"Julián G.", role:"Dir. TI",
+    cargo:"Director de TI — Departamento de Tecnología - RAYOGAS",
+    contacto:"direccion.ti@rayogas.co / 778-456-7863",
+    clasificacion:"Solidario", interes:"A", poder:"A", tipo:"Interno",
+    quadrant:"gc",
+    requisitos:"Coordinar la integración técnica de FlashPay con la infraestructura existente. Asegurar estabilidad, seguridad y documentación técnica de la solución.",
+    expectativas:"Estabilidad del servidor, seguridad de APIs con TLS 1.2+, webhooks confiables, documentación técnica completa y arquitectura limpia sin dependencias frágiles.",
+    estrategia:"Gestionar de cerca. Revisiones técnicas periódicas. Compartir documentación de APIs y arquitectura desde el inicio. Involucrar en decisiones de seguridad y protocolo. Reuniones de arquitectura en cada fase del proyecto.",
+    px:70, py:38, size:"lg"
+  },
+  {
+    id:"008", name:"Yoan Caicedo", short:"Yoan C.", role:"Infra.",
+    cargo:"Líder de Infraestructura — Departamento de Tecnología - RAYOGAS",
+    contacto:"lider.infra@rayogas.co / 452-123-7896",
+    clasificacion:"Solidario", interes:"M", poder:"A", tipo:"Interno",
+    quadrant:"ms",
+    requisitos:"Garantizar la disponibilidad y seguridad de los servidores que alojarán el middleware FlashPay. Validar configuración de red y protocolos de comunicación.",
+    expectativas:"Alta disponibilidad de servidores, configuración correcta de puertos y protocolos, entorno de pruebas estable y soporte ante incidentes de infraestructura.",
+    estrategia:"Mantener satisfecho. Informar con anticipación sobre requerimientos de infraestructura. Involucrar en la definición del ambiente de pruebas. Respetar sus ventanas de mantenimiento. Comunicación técnica directa y concisa.",
+    px:38, py:18, size:"md"
+  },
+  {
+    id:"009", name:"Sebastian Urazan", short:"Sebastian U.", role:"Desarrollo",
+    cargo:"Analista de Desarrollo — Departamento de Tecnología - RAYOGAS",
+    contacto:"desarrollador@rayogas.co / 789-321-6548",
+    clasificacion:"Solidario", interes:"A", poder:"M", tipo:"Interno",
+    quadrant:"gc",
+    requisitos:"Ejecutar los ajustes técnicos de integración entre la API de ePayco y el ERP Siesa. Desarrollar y documentar los endpoints del middleware FlashPay.",
+    expectativas:"Documentación técnica clara y completa, arquitectura bien definida, ambiente de desarrollo estable y criterios de aceptación técnicos precisos para cada integración.",
+    estrategia:"Gestionar de cerca. Proveer documentación técnica detallada desde el inicio. Definir criterios de aceptación claros por fase. Sesiones técnicas de revisión de código. Ambiente de desarrollo disponible.",
+    px:56, py:42, size:"sm"
+  },
+  {
+    id:"010", name:"Gina Sanchez", short:"Gina S.", role:"ePayco",
+    cargo:"Proveedor de ePayco — ePayco (Pasarela de Pagos)",
+    contacto:"epayco@epayco.com / 569-745-7896",
+    clasificacion:"Solidario", interes:"A", poder:"A", tipo:"Externo",
+    quadrant:"gc",
+    requisitos:"Proveer soporte técnico activo para la implementación de la API de ePayco. Garantizar acceso a documentación, sandbox y ambientes de prueba.",
+    expectativas:"Uso correcto de sus APIs, cumplimiento de sus TOS técnicos y comunicación fluida durante la integración. Validación técnica del uso de sus webhooks.",
+    estrategia:"Gestionar de cerca. Establecer canal de comunicación técnica directo. Solicitar sandbox y documentación actualizada en la fase inicial. Reuniones en hitos clave. Formalizar SLA de soporte durante el proyecto.",
+    px:53, py:46, size:"md"
+  },
+  {
+    id:"011", name:"Alexandra Mendez", short:"Alexandra M.", role:"Siesa",
+    cargo:"Proveedor de Siesa — Siesa S.A. (ERP)",
+    contacto:"siesa.fe@siesa.com / 698-325-6548",
+    clasificacion:"Solidario", interes:"A", poder:"A", tipo:"Externo",
+    quadrant:"gc",
+    requisitos:"Apoyar la integración del ERP Siesa con el middleware FlashPay. Proveer acceso a los módulos de cartera y contabilidad para su conexión con ePayco.",
+    expectativas:"Uso correcto de sus APIs y módulos ERP, cumplimiento de sus estándares de integración y comunicación técnica clara sobre cambios o actualizaciones del sistema.",
+    estrategia:"Gestionar de cerca. Reuniones de alineación técnica desde la fase de diseño. Solicitar documentación de módulos de cartera y contabilidad. Formalizar canal de soporte técnico. Validar compatibilidad de versiones del ERP.",
+    px:64, py:52, size:"md"
+  },
+  {
+    id:"012", name:"Cliente B2B", short:"Cliente B2B", role:"Cliente",
+    cargo:"Cliente Externo B2B — Empresas clientes de RAYOGAS",
+    contacto:"No aplica",
+    clasificacion:"Inconsciente", interes:"B", poder:"B", tipo:"Externo",
+    quadrant:"mon",
+    requisitos:"Recibir confirmación automática e inmediata de sus pagos y que sus pedidos sean liberados sin intervención manual por parte del equipo de cartera de RAYOGAS.",
+    expectativas:"Liberación inmediata de pedidos tras el pago, transparencia en estado de cuenta, eliminación de bloqueos de crédito por demoras en conciliación manual.",
+    estrategia:"Monitorear. Incluir su perspectiva en el diseño de la experiencia de pago. Recopilar feedback post-implementación. Medir reducción de bloqueos de pedidos como indicador de éxito del proyecto.",
+    px:22, py:72, size:"sm"
+  }
+];
+
+const quadrantColors = {
+  gc:  { circle:'color-gc',  tag:'stag-gc',  label:'Gestionar de cerca',    tagBg:'#1E7145' },
+  ms:  { circle:'color-ms',  tag:'stag-ms',  label:'Mantener satisfechos',  tagBg:'#2E74B5' },
+  mi:  { circle:'color-mi',  tag:'stag-mi',  label:'Mantener informados',   tagBg:'#B07D00' },
+  mon: { circle:'color-mon', tag:'stag-mon', label:'Monitorear',            tagBg:'#666' }
+};
+
+// Build nodes
+const grid = document.getElementById('matrixGrid');
+
+stakeholders.forEach(s => {
+  const q = quadrantColors[s.quadrant];
+  const node = document.createElement('div');
+  node.className = 'node';
+  node.style.left  = s.px + '%';
+  node.style.top   = s.py + '%';
+  node.dataset.id  = s.id;
+
+  node.innerHTML = `
+    <div class="node-circle ${q.circle} size-${s.size}">${s.id}</div>
+    <div class="node-label">
+      <span class="nl-name">${s.short}</span>
+      <span class="nl-role">${s.role}</span>
+    </div>`;
+
+  node.addEventListener('click', () => showDetail(s));
+  grid.appendChild(node);
+});
+
+let activeNode = null;
+
+function showDetail(s) {
+  // Toggle active node
+  if (activeNode) activeNode.classList.remove('active');
+  const nodeEl = document.querySelector(`.node[data-id="${s.id}"]`);
+  nodeEl.classList.add('active');
+  activeNode = nodeEl;
+
+  const q = quadrantColors[s.quadrant];
+
+  document.getElementById('detailEmpty').style.display = 'none';
+  const dc = document.getElementById('detailContent');
+  dc.classList.add('visible');
+
+  document.getElementById('dId').innerHTML =
+    `<span style="font-size:13px;font-weight:700;color:var(--navy)">${s.id}</span>
+     <span style="color:var(--text2)">${s.tipo}</span>`;
+  document.getElementById('dName').textContent = s.name;
+
+  const roleTag = document.getElementById('dRoleTag');
+  roleTag.innerHTML = `<span class="detail-role-tag" style="background:${q.tagBg}">${s.role}</span>`;
+
+  document.getElementById('dCargo').textContent = s.cargo;
+  document.getElementById('dContacto').textContent = s.contacto;
+
+  const badges = document.getElementById('dBadges');
+  const intBadge = s.interes==='A' ? 'badge-a-green' : (s.interes==='M' ? 'badge-m-amber' : 'badge-b-red');
+  const podBadge = s.poder==='A' ? 'badge-a-blue' : (s.poder==='M' ? 'badge-m-amber' : 'badge-b-red');
+  badges.innerHTML = `
+    <span class="badge ${intBadge}">Interés ${s.interes}</span>
+    <span class="badge ${podBadge}">Poder ${s.poder}</span>
+    <span class="badge" style="background:#F0F2F7;color:var(--text2);border:1px solid var(--border)">${s.clasificacion}</span>
+  `;
+
+  document.getElementById('dRequisitos').textContent   = s.requisitos;
+  document.getElementById('dExpectativas').textContent = s.expectativas;
+
+  const stratTag = document.getElementById('dStratTag');
+  stratTag.innerHTML = `<span class="strategy-tag ${q.tag}">${q.label}</span>`;
+  document.getElementById('dEstrategia').textContent   = s.estrategia;
+}
+</script>
+</body>
+</html>
